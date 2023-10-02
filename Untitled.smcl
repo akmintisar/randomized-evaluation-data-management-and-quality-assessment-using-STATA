@@ -1,0 +1,172 @@
+{smcl}
+{com}{sf}{ul off}{txt}{.-}
+      name:  {res}<unnamed>
+       {txt}log:  {res}C:\Users\UseR\Documents\Stata_test\Untitled.smcl
+  {txt}log type:  {res}smcl
+ {txt}opened on:  {res}20 Apr 2023, 23:40:56
+
+{com}. do "C:\Users\UseR\AppData\Local\Temp\STD01000000.tmp"
+{txt}
+{com}. clear all
+{txt}
+{com}. //directory where the CSV files are located
+. cd "C:\Users\UseR\Documents\Stata_test"
+{res}C:\Users\UseR\Documents\Stata_test
+{txt}
+{com}. 
+. // Loop over all admin data files
+. forvalues i = 1/3 {c -(}
+{txt}  2{com}.     local adminfile "admin data `i'.csv"
+{txt}  3{com}.     local admindata "admin`i'.dta"
+{txt}  4{com}.     
+.     // Import and convert admin data
+.     import delimited "`adminfile'", clear
+{txt}  5{com}.         
+.         // Remove id duplicate
+.     duplicates drop id, force
+{txt}  6{com}.     save "`admindata'", replace
+{txt}  7{com}. {c )-}
+{res}{text}(2 vars, 954 obs)
+
+{p 0 4}{txt}Duplicates in terms of {res} id{p_end}
+
+{txt}(5 observations deleted)
+(note: file admin1.dta not found)
+file admin1.dta saved
+{res}{text}(2 vars, 952 obs)
+
+{p 0 4}{txt}Duplicates in terms of {res} id{p_end}
+
+{txt}(3 observations deleted)
+(note: file admin2.dta not found)
+file admin2.dta saved
+{res}{text}(2 vars, 962 obs)
+
+{p 0 4}{txt}Duplicates in terms of {res} id{p_end}
+
+{txt}(13 observations deleted)
+(note: file admin3.dta not found)
+file admin3.dta saved
+
+{com}. //Merging data
+. use "data.dta"
+{txt}
+{com}. merge m:1 id using "admin1.dta", nogenerate
+{res}
+{txt}{col 5}Result{col 38}# of obs.
+{col 5}{hline 41}
+{col 5}not matched{col 30}{res}              50
+{txt}{col 9}from master{col 30}{res}              50{txt}  
+{col 9}from using{col 30}{res}               0{txt}  
+
+{col 5}matched{col 30}{res}             949{txt}  
+{col 5}{hline 41}
+
+{com}. merge m:1 id using "admin2.dta", nogenerate
+{res}
+{txt}{col 5}Result{col 38}# of obs.
+{col 5}{hline 41}
+{col 5}not matched{col 30}{res}              50
+{txt}{col 9}from master{col 30}{res}              50{txt}  
+{col 9}from using{col 30}{res}               0{txt}  
+
+{col 5}matched{col 30}{res}             949{txt}  
+{col 5}{hline 41}
+
+{com}. merge m:1 id using "admin3.dta"
+{res}
+{txt}{col 5}Result{col 38}# of obs.
+{col 5}{hline 41}
+{col 5}not matched{col 30}{res}              50
+{txt}{col 9}from master{col 30}{res}              50{txt}  (_merge==1)
+{col 9}from using{col 30}{res}               0{txt}  (_merge==2)
+
+{col 5}matched{col 30}{res}             949{txt}  (_merge==3)
+{col 5}{hline 41}
+
+{com}. 
+. // Save merged data
+. save merged_data.dta, replace
+{txt}(note: file merged_data.dta not found)
+file merged_data.dta saved
+
+{com}. 
+. 
+. //Table of total number of completed surveys by each enumerator
+. collapse (sum) survey_complete, by(enum)
+{txt}
+{com}. list enum survey_complete, sepby(enum)
+{txt}
+     {c TLC}{hline 10}{c -}{hline 10}{c TRC}
+     {c |} {res}    enum   survey~e {txt}{c |}
+     {c LT}{hline 10}{c -}{hline 10}{c RT}
+  1. {c |} {res}    Anna        120 {txt}{c |}
+     {c LT}{hline 10}{c -}{hline 10}{c RT}
+  2. {c |} {res}Benjamin        127 {txt}{c |}
+     {c LT}{hline 10}{c -}{hline 10}{c RT}
+  3. {c |} {res}Caroline         58 {txt}{c |}
+     {c LT}{hline 10}{c -}{hline 10}{c RT}
+  4. {c |} {res}   David        143 {txt}{c |}
+     {c LT}{hline 10}{c -}{hline 10}{c RT}
+  5. {c |} {res}   Grace         45 {txt}{c |}
+     {c LT}{hline 10}{c -}{hline 10}{c RT}
+  6. {c |} {res}    Jane         15 {txt}{c |}
+     {c LT}{hline 10}{c -}{hline 10}{c RT}
+  7. {c |} {res}    John         65 {txt}{c |}
+     {c LT}{hline 10}{c -}{hline 10}{c RT}
+  8. {c |} {res}  Joseph         59 {txt}{c |}
+     {c LT}{hline 10}{c -}{hline 10}{c RT}
+  9. {c |} {res}    Mary        136 {txt}{c |}
+     {c LT}{hline 10}{c -}{hline 10}{c RT}
+ 10. {c |} {res}   Peter         38 {txt}{c |}
+     {c LT}{hline 10}{c -}{hline 10}{c RT}
+ 11. {c |} {res}     Sam         92 {txt}{c |}
+     {c BLC}{hline 10}{c -}{hline 10}{c BRC}
+
+{com}. 
+. //average and median values of time spent surveying, considering only completed surveys
+. clear all
+{txt}
+{com}. use merged_data.dta
+{txt}
+{com}. destring survey_complete, replace
+{txt}survey_complete already numeric; no {res}replace
+{txt}
+{com}. destring survey_complete, generate(survey_complete_numeric)
+{txt}survey_complete already numeric; no {res}generate
+{txt}
+{com}. keep if survey_complete == 1
+{txt}(101 observations deleted)
+
+{com}. 
+{txt}end of do-file
+
+{com}. do "C:\Users\UseR\AppData\Local\Temp\STD01000000.tmp"
+{txt}
+{com}. use merged_data.dta, clear
+{txt}
+{com}. gen new_age = 0
+{txt}
+{com}. replace new_age = age if age <= 100 & age > 0
+{txt}(848 real changes made)
+
+{com}. replace new_age = 2023 - age if age <= 2023 & age > 100
+{txt}(150 real changes made)
+
+{com}. replace age = new_age
+{txt}(151 real changes made)
+
+{com}. save merged_data.dta, replace
+{txt}file merged_data.dta saved
+
+{com}. 
+{txt}end of do-file
+
+{com}. log close
+      {txt}name:  {res}<unnamed>
+       {txt}log:  {res}C:\Users\UseR\Documents\Stata_test\Untitled.smcl
+  {txt}log type:  {res}smcl
+ {txt}closed on:  {res}20 Apr 2023, 23:41:23
+{txt}{.-}
+{smcl}
+{txt}{sf}{ul off}
